@@ -140,7 +140,7 @@ if (debug) {
 	let key = encodeURIComponent('FuckIdiotW');
 	if (window[key]) return;
 	window[key] = true;
-	log._info("Running...")
+	log.info("Running...")
 
     // 2024版评论
 	waitForKeyElements("div#info div#user-name[data-user-profile-id]", (element) => {
@@ -149,25 +149,25 @@ if (debug) {
             if (userNameElement) {
                 const replyRenderer = findParentInShadowTree(userNameElement, 'bili-comment-reply-renderer');
                 if (replyRenderer) {
-                    log._debug('找到元素: ', replyRenderer);
+                    log.debug('找到元素: ', replyRenderer);
                     // 判断其等级
                     const userLevel = replyRenderer.__data.member.level_info.current_level
                     if (userLevel <= level_n) {
-                        log._debug(replyRenderer.__data.rpid, "触发等级屏蔽");
+                        log.debug(replyRenderer.__data.rpid, "触发等级屏蔽");
                         replyRenderer.remove();
                     }
                 } else {
                     const threadRenderer = findParentInShadowTree(userNameElement, 'bili-comment-thread-renderer');
                     if (threadRenderer) {
-                        log._debug('找到元素: ', threadRenderer);
+                        log.debug('找到元素: ', threadRenderer);
                         // 判断其等级
                         const userLevel = threadRenderer.__data.member.level_info.current_level
                         if (userLevel <= level_n) {
-                            log._debug(threadRenderer.__data.rpid, "触发等级屏蔽");
+                            log.debug(threadRenderer.__data.rpid, "触发等级屏蔽");
                             threadRenderer.remove();
                         }
                     } else {
-                        log._debug('未找到任何父元素');
+                        log.debug('未找到任何父元素');
                     }
                 }
             }
