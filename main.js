@@ -117,7 +117,7 @@ var Logger = (function (undefined) {
 /**
  * 是否在控制台显示大多数错误消息
  */
-let debug = true;
+let debug = false;
 var log;
 if (debug) {
     log = new Logger("FuckIdiotW", 4)
