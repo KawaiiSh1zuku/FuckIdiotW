@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         FuckIdiotW
 // @namespace    Sh1zuku
-// @version      0.1
+// @version      0.2
 // @description  Bilibili 评论区按等级屏蔽 (暂时只支持 2024 新版评论区)
 // @author       Sh1zuku
 // @match        *://*.bilibili.com/*
 // @exclude      *://member.bilibili.com*
-// @icon         https://www.google.com/s2/favicons?sz=64&domain=bilibili.com
+// @icon         https://raw.githubusercontent.com/the1812/Bilibili-Evolved/preview/images/logo-small.png
+// @icon64       https://raw.githubusercontent.com/the1812/Bilibili-Evolved/preview/images/logo.png
 // @run-at       document-start
 // @license      ISC
 // @connect      bilibili.com
@@ -17,7 +18,7 @@
 // @require      https://unpkg.com/jquery@3.6.0/dist/jquery.min.js
 // ==/UserScript==
 
-/* 
+/*
 Simple Logger Wrapper
 Author: XUJINKAI
 */
@@ -141,32 +142,35 @@ if (debug) {
 	window[key] = true;
 	log._info("Running...")
 
-	// 2024版评论
+    // 2024版评论
 	waitForKeyElements("div#info div#user-name[data-user-profile-id]", (element) => {
 		if (element && element.length > 0) {
-			let style = document.createElement("style");
-			style.rel = 'stylesheet';
-			element.before(style)
-            check(element.attr("data-user-profile-id"), "", element)
-		}
-	});
-
-	// 2024版 回复、纯@评论
-	waitForKeyElements("p#contents a[data-user-profile-id]", (element) => {
-		if (element && element.length > 0) {
-			let style = document.createElement("style");
-			style.rel = 'stylesheet';
-			element.before(style)
-            //check(element.attr("data-user-profile-id"), "", element) 暂时没写回复和纯艾特（回复用该方法会把主评论一起吃了，而且无法自动触发）
-		}
-	});
-
-	// 直播间弹幕列表评论
-	waitForKeyElements("div.chat-items div.chat-item", (element) => {
-		if (element && element.length > 0) {
-			let point = $(`<span class="chat-item">👆</span>`)
-			element.after(point)
-            // check(element.attr("data-user-profile-id"), "", element) 一会再写
+            const userNameElement = element[0]; // 转换为原生 DOM
+            if (userNameElement) {
+                const replyRenderer = findParentInShadowTree(userNameElement, 'bili-comment-reply-renderer');
+                if (replyRenderer) {
+                    log._debug('找到元素: ', replyRenderer);
+                    // 判断其等级
+                    const userLevel = replyRenderer.__data.member.level_info.current_level
+                    if (userLevel <= level_n) {
+                        log._debug(replyRenderer.__data.rpid, "触发等级屏蔽");
+                        replyRenderer.remove();
+                    }
+                } else {
+                    const threadRenderer = findParentInShadowTree(userNameElement, 'bili-comment-thread-renderer');
+                    if (threadRenderer) {
+                        log._debug('找到元素: ', threadRenderer);
+                        // 判断其等级
+                        const userLevel = threadRenderer.__data.member.level_info.current_level
+                        if (userLevel <= level_n) {
+                            log._debug(threadRenderer.__data.rpid, "触发等级屏蔽");
+                            threadRenderer.remove();
+                        }
+                    } else {
+                        log._debug('未找到任何父元素');
+                    }
+                }
+            }
 		}
 	});
 
@@ -187,7 +191,7 @@ if (debug) {
 		const buvid3 = `${uuid()}${randomInt.toString().padStart(5, '0')}infoc`;
 		return buvid3;
 	}
-    
+
     function findParentInShadowTree(element, selector) {
         while (element) {
             if (element.matches && element.matches(selector)) {
@@ -203,26 +207,7 @@ if (debug) {
         }
         return null;
     }
-    
-    function check(id, elemname, element) {
-        log._debug(id, elemname, element);
-        const userNameElement = element[0]; // 转换为原生 DOM
-        if (userNameElement) {
-            const threadRenderer = findParentInShadowTree(userNameElement, 'bili-comment-thread-renderer');
-            if (threadRenderer) {
-                log._debug('找到元素: ', threadRenderer);
-                // 判断其等级
-                const userLevel = threadRenderer.__data.member.level_info.current_level
-                if (userLevel <= level_n) {
-                    log._debug(threadRenderer.__data.rpid, "触发等级屏蔽");
-                    threadRenderer.remove();
-                }
-            } else {
-                log._debug('未找到 bili-comment-thread-renderer');
-            }
-        }
 
-	}
 
 	/*--- waitForKeyElements(): 一个实用函数，用于 Greasemonkey 脚本，
 	它可以检测和处理AJAX加载的内容。
